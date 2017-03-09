@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+    <head>
+        <title>Q-learning Example</title>
+    <head>
+
+    <body>
+        <canvas id="canvas" width="1000px" height="1000px"></canvas>
+        <a>SPEED : </a>
+        <input type="number" id="speed" value="10">
+        <input type="button" value="start" onclick="speed = parseInt(document.getElementById('speed').value) || 100; this.value == 'start' ? start() : stop(); this.value = this.value == 'start' ? 'stop' : 'start';">
+
+        <script src="src/q-learning.js"></script>
+        <script>
+var speed = 10;
+
+var rewards = [];
+
+const width = 5;
+const height = 5;
+
+for (var i = 0;i < width * height - 1;i++) rewards.push(0);
+rewards.push(1);
+
+
+var interval;
+
+var canvas = document.getElementById("canvas");
+var ctx = canvas.getContext("2d");
+
+var learner = new QLearner(0.5, 0.7, 0.5, 0.2, 10000);
+
+var agent_x = 0;
+var agent_y = 0;
+     
+
+function draw() {
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, 1000, 1000);
+    
+    for (var i = 0;i < width * height;i++) {
+        if (agent_x + agent_y * width == i) ctx.fillStyle = "#ff8888";
+        else ctx.fillStyle = rewards[i] > 0 ? "#8888ff" : (rewards[i] < 0 ? "#ff0000" : "#888888");
+
+        var x = i % width;
+        var y = Math.floor(i / width);
+
+        ctx.fillRect(x * 1000 / width + 10, y * 1000 / height + 10, 1000 / width - 20, 1000 / height - 20);
+if (!learner.Q[x + y * width]) learner.Q[x + y * width] = [];
+
+        ctx.fillStyle = "#ffffff";
+        ctx.textAlign = "center";
+
+        ctx.fillText((learner.Q[x + y * width][1] || 0).toFixed(2), (x + 0.5) * 1000 / width, (y + 0.2) * 1000 / height);
+         ctx.fillText((learner.Q[x + y * width][0] || 0).toFixed(2), (x + 0.5) * 1000 / width, (y + 0.8) * 1000 / height);
+        ctx.fillText((learner.Q[x + y * width][3] || 0).toFixed(2), (x + 0.2) * 1000 / width, (y + 0.5) * 1000 / height);
+        ctx.fillText((learner.Q[x + y * width][2] || 0).toFixed(2), (x + 0.8) * 1000 / width, (y + 0.5) * 1000 / height);
+    }
+}
+
+canvas.onclick = function() {
+    if (interval) return;
+    
+    var x = Math.floor(event.clientX / 1000 * width);
+    var y = Math.floor(event.clientY / 1000 * height);
+    
+    rewards[x + width * y] = rewards[x + width * y] == -3 ? 0 : -3;
+    draw();
+}
+
+function start() {
+    if (interval) clearInterval(interval);
+    interval = setInterval(function() {
+        draw();
+try{
+        if (rewards[agent_x + agent_y * width]) {
+            agent_x = 0;
+            agent_y = 0;
+       }
+       else {
+            var s = agent_x + agent_y * width;
+            var a = learner.optimumAction(s, [0, 1, 2, 3]);
+            switch (a) {
+                case 0:
+                    if (agent_y < height - 1) agent_y++;
+                    break;
+
+                case 1:
+                    if (agent_y > 0) agent_y--;
+                    break;
+
+                case 2:
+                    if (agent_x < width - 1) agent_x++;
+                    break;
+
+                case 3:
+                    if (agent_x > 0) agent_x--;
+                    break;
+            }
+            var s2 = agent_x + agent_y * width;
+            learner.train(s, a, rewards[s2], s2);
+        }
+}catch(error){alert(error+"")}
+    }, 1000 / speed);
+}
+
+function stop() {
+    if (interval) clearInterval(interval);
+}
+draw();
+        </script>
+    </body>
+</html>
