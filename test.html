@@ -27,7 +27,7 @@ var interval;
 var canvas = document.getElementById("canvas");
 var ctx = canvas.getContext("2d");
 
-var learner = new QLearner(0.5, 0.7, 0.5, 0.2, 10000);
+var learner = new QLearner(0.9, 0.7, 0.5, 0.1, 10000);
 
 var agent_x = 0;
 var agent_y = 0;
@@ -71,7 +71,6 @@ function start() {
     if (interval) clearInterval(interval);
     interval = setInterval(function() {
         draw();
-try{
         if (rewards[agent_x + agent_y * width]) {
             agent_x = 0;
             agent_y = 0;
@@ -99,7 +98,6 @@ try{
             var s2 = agent_x + agent_y * width;
             learner.train(s, a, rewards[s2], s2);
         }
-}catch(error){alert(error+"")}
     }, 1000 / speed);
 }
 
